@@ -10,7 +10,6 @@ import softuni.workshop.util.*;
 @Configuration
 public class ApplicationBeanConfiguration {
 
-    // TODO
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
@@ -31,9 +30,9 @@ public class ApplicationBeanConfiguration {
         return new XmlParserImpl();
     }
 
-//    @Bean
-//    public ValidatorUtil validatorUtil() {
-//        return new ValidatorUtilImpl();
-//    }
+    @Bean
+    public ValidationUtil validationUtil() {
+        return new ValidationUtilImpl();
+    }
 
 }

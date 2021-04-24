@@ -11,11 +11,13 @@ import softuni.workshop.domain.entities.Project;
 import softuni.workshop.repository.ProjectRepository;
 import softuni.workshop.service.CompanyService;
 import softuni.workshop.service.ProjectService;
+import softuni.workshop.util.ValidationUtil;
 import softuni.workshop.web.models.ProjectViewModel;
 import softuni.workshop.util.FileUtil;
 import softuni.workshop.util.XmlParser;
 
 import javax.transaction.Transactional;
+import javax.validation.ConstraintViolation;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
@@ -30,14 +32,16 @@ public class ProjectServiceImpl implements ProjectService {
     private final ModelMapper modelMapper;
     private final XmlParser xmlParser;
     private final CompanyService companyService;
+    private final ValidationUtil validationUtil;
 
     @Autowired
-    public ProjectServiceImpl(ProjectRepository projectRepo, FileUtil fileUtil, ModelMapper modelMapper, XmlParser xmlParser, CompanyService companyService) {
+    public ProjectServiceImpl(ProjectRepository projectRepo, FileUtil fileUtil, ModelMapper modelMapper, XmlParser xmlParser, CompanyService companyService, ValidationUtil validationUtil) {
         this.projectRepo = projectRepo;
         this.fileUtil = fileUtil;
         this.modelMapper = modelMapper;
         this.xmlParser = xmlParser;
         this.companyService = companyService;
+        this.validationUtil = validationUtil;
     }
 
     @Override
@@ -59,7 +63,16 @@ public class ProjectServiceImpl implements ProjectService {
 
                     return project;
                 })
-                .forEach(this.projectRepo::save);
+                .forEach(p -> {
+                    if (this.validationUtil.isValid(p)){
+                        this.projectRepo.save(p);
+                    }else {
+                        this.validationUtil.violations(p)
+                                .stream()
+                                .map(ConstraintViolation::getMessage)
+                                .forEach(System.out::println);
+                    }
+                });
     }
 
     @Override

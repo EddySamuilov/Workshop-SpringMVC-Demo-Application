@@ -15,7 +15,6 @@ import softuni.workshop.service.RoleService;
 import softuni.workshop.service.UserService;
 
 import javax.transaction.Transactional;
-import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
 
 @Service

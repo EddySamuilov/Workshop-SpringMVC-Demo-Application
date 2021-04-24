@@ -10,11 +10,13 @@ import softuni.workshop.domain.entities.Project;
 import softuni.workshop.repository.EmployeeRepository;
 import softuni.workshop.service.EmployeeService;
 import softuni.workshop.service.ProjectService;
+import softuni.workshop.util.ValidationUtil;
 import softuni.workshop.web.models.EmployeeViewModel;
 import softuni.workshop.util.FileUtil;
 import softuni.workshop.util.XmlParser;
 
 import javax.transaction.Transactional;
+import javax.validation.ConstraintViolation;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
@@ -28,15 +30,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final XmlParser xmlParser;
     private final FileUtil fileUtil;
     private final ProjectService projectService;
-//    private final ValidatorUtil validatorUtil;
+    private final ValidationUtil validationUtil;
 
     @Autowired
-    public EmployeeServiceImpl(EmployeeRepository employeeRepo, ModelMapper modelMapper, XmlParser xmlParser, FileUtil fileUtil, ProjectService projectService) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepo, ModelMapper modelMapper, XmlParser xmlParser, FileUtil fileUtil, ProjectService projectService, ValidationUtil validationUtil) {
         this.employeeRepo = employeeRepo;
         this.modelMapper = modelMapper;
         this.xmlParser = xmlParser;
         this.fileUtil = fileUtil;
         this.projectService = projectService;
+        this.validationUtil = validationUtil;
     }
 
     @Override
@@ -56,7 +59,16 @@ public class EmployeeServiceImpl implements EmployeeService {
 
                     return employee;
                 })
-                .forEach(this.employeeRepo::save);
+                .forEach(e -> {
+                    if (this.validationUtil.isValid(e)){
+                        this.employeeRepo.save(e);
+                    }else {
+                        this.validationUtil.violations(e)
+                                .stream()
+                                .map(ConstraintViolation::getMessage)
+                                .forEach(System.out::println);
+                    }
+                });
     }
 
     @Override
